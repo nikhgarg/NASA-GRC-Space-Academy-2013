@@ -11,9 +11,9 @@ const int imuPinX = A3;
 const int imuPinY = A4;
 const int imuPinZ = A5;
 
-const int tempMux = 0;
-const int resistanceMux = 1;
-const int pressureMux = 2;
+const int tempMux = 0 ;
+const int resistanceMux = 1 << 5;
+const int pressureMux = 2 << 5;
 
 const int capacitorChargePin1 = 3;
 const int capacitorChargePin2 = 4;
@@ -51,9 +51,7 @@ int my_putc( char c, FILE *t) {
 }
 void setup(){
   Serial.begin(115200);
-  DDRD = DDRD | B11100000; // set digital ports 5-7 as writes for mux
-  pinMode(capacitorChargePin1, OUTPUT); 
-  pinMode(capacitorChargePin2, OUTPUT); 
+  DDRD = B11111000; // set digital ports 3-7 as writes for mux
   digitalWrite(capacitorChargePin1, LOW); //discharge capacitor
   digitalWrite(capacitorChargePin2, LOW); //discharge capacitor
   fdevopen( &my_putc, 0);
@@ -66,12 +64,9 @@ void loop(){
 
 void capacitorRead(){
   const int length = 200;
-  printf("in capacitor read");
   int capacitor1Data [length] = {0};
   int capacitor2Data [length] = {0};
   long capacitorTimeData[length] = {0};
-
-  printf("after allocation");
 
   long looptimestart = micros();
   while(analogRead(capacitorAnalogPin1) > 0){         // wait until capacitor is completely discharged
@@ -81,7 +76,6 @@ void capacitorRead(){
       break;
     }
   }
-  printf("discharged capacitor");
   PORTD = capacitorChargePin1 | capacitorChargePin2; // set capacitorChargePin HIGH and capacitor charging
   long startTime = micros();
   looptimestart = micros();
@@ -108,11 +102,16 @@ void capacitorRead(){
     }
   }
   while ( cap1Value < 800 || cap2Value < 800);
+  
   delay(100);
-  printf("{\"capacitor1\": [%d", capacitor1Data[0]);
+  Serial.print("{\"capacitor1\": [");
+  Serial.println(capacitor1Data[0]);
+  
+  delay(1000);
   for (int i = 1; i< index;i++){
     delay(100);
-    printf(", %d", capacitor1Data[i]);    
+    Serial.print(", ");
+    Serial.print(capacitor1Data[i]);    
 
   }
   delay(10);
@@ -180,13 +179,19 @@ void samplePorts() /*sample ports and send over serial according to rates*/
 
     switch(muxChoice){
     case 0: 
-      jsonprint("temperature", muxVal, millis());
+      printf("{\"temperature\": %d, \"time\": ", muxVal);
+      Serial.print(millis());
+      Serial.println("}");
       break;
     case 1: 
-      jsonprint("resistance", muxVal, millis());
+      printf("{\"resistance\": %d, \"time\": ", muxVal);
+      Serial.print(millis());
+      Serial.println("}");  
       break; 
     case 2: 
-      jsonprint("pressure", muxVal, millis());
+      printf("{\"pressure\": %d, \"time\": ", muxVal);
+      Serial.print(millis());
+      Serial.println("}");
       break;
     }
 
