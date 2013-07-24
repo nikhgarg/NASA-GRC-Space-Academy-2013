@@ -155,10 +155,10 @@ void samplePorts() /*sample ports and send over serial according to rates*/
     imuTime = time;
   }
 
-  if (time - capacitorTime > 1000/capacitorRate) /* sample capacitorPin */ {
-    capacitorRead();
-    capacitorTime = millis();
-  }
+//  if (time - capacitorTime > 1000/capacitorRate) /* sample capacitorPin */ {
+//    capacitorRead();
+//    capacitorTime = millis();
+//  }
 
   if (time - muxTime > 1000/muxRate) /* sample mux */ {
 
