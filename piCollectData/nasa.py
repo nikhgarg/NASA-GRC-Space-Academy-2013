@@ -2,6 +2,9 @@
 
 # Read data from I2C sensors and send it to a remote UDP socket.
 
+import json
+import serial
+
 from multiprocessing import Process
 import time
 import socket
@@ -30,15 +33,11 @@ bmp = BMP085(0x77)
 
 # I2C output files
 
-itempf = open("data/itemperature.txt", "a")
-ipresf = open("data/ipressure.txt", "a")
-ialtif = open("data/ialtitude.txt", "a")
-
-lastitemp = ""
-lastipres = ""
-lastialti = ""
-
 def readI2C():
+	itempf = open("data/itemperature.txt", "a")
+	ipresf = open("data/ipressure.txt", "a")
+	ialtif = open("data/ialtitude.txt", "a")
+
 	x = 0
 	while True:
 		temp = bmp.readTemperature()
@@ -53,18 +52,46 @@ def readI2C():
 		lastipres = "Pressure:    %.2f hPa" % (pressure / 100.0)
 		lastialti = "Altitude:    %.2f" % altitude
 
+		itempf.write(str(time.time()) + " " + lastitemp + '\n')
+		ipresf.write(str(time.time()) + " " + lastipres + '\n')
+		ialtif.write(str(time.time()) + " " + lastialti + '\n')
+
+		itempf.flush()
+		ipresf.flush()
+		ialtif.flush()
+
 #		print "Temperature: %.2f C" % temp
 #		print "Pressure:    %.2f hPa" % (pressure / 100.0)
 #		print "Altitude:    %.2f" % altitude
 
 		if x % 5 == 0:
-			str = "Temperature " + lastitemp + "\nPressure    " + lastipres + "\nAltitude    " + lastialti + "\n"
-			sock.sendto(str, ("192.168.10.223", 9930))
+			sockstr = "Temperature " + lastitemp + "\nPressure    " + lastipres + "\nAltitude    " + lastialti + "\n"
+			sock.sendto(sockstr, ("192.168.10.1", 9930))
 		x = x + 1
 
 		time.sleep(1)
 
+def readSerial():
+	sensors = ["pressure","imux","temperature","light","capacitor","conductance"]
+	files = {}
+	for sensor in sensors:
+		files[sensor] = open("data/" + sensor + ".txt", "a")
+
+	ser = serial.Serial('/dev/ttyACM0', 115200)
+	while True:
+		x = ser.readline()
+		try:
+			f = json.loads(x)
+			for sensor in sensors:
+				if sensor in f:
+					files[sensor].write(str(time.time()) + " " + x + '\n')
+					files[sensor].flush()
+		except:
+			# corrupt json
+			pass
 
 if __name__ == '__main__':
 	p = Process(target=readI2C, args=())
 	p.start()
+	q = Process(target=readSerial, args=())
+	q.start()
