@@ -31,9 +31,9 @@ unsigned long capacitorStartTime = 0;
 unsigned long muxTime = 0;
 
 void p(char *fmt, ... ){
-  
+
   int buffer = 1024;
-  
+
   char tmp[buffer]; // resulting string limited to 128 chars
   va_list args;
   va_start (args, fmt );
@@ -51,7 +51,7 @@ int my_putc( char c, FILE *t) {
 }
 void setup(){
   Serial.begin(115200);
-  DDRD = B11111000; // set digital ports 3-7 as writes for mux
+  DDRD = B11111000; // set digital ports 3-7 as writes for mux and capacitor
   digitalWrite(capacitorChargePin1, LOW); //discharge capacitor
   digitalWrite(capacitorChargePin2, LOW); //discharge capacitor
   fdevopen( &my_putc, 0);
@@ -61,6 +61,7 @@ void setup(){
 void loop(){
   samplePorts();
 }
+
 void capacitorRead(){
   const int length = 200;
   int capacitor1Data [length];
@@ -72,7 +73,7 @@ void capacitorRead(){
   long looptimestart = micros();
   while(analogRead(capacitorAnalogPin1) > 0){         // wait until capacitor is completely discharged
 
-    if (micros() - looptimestart > 1000000*2){ //too long in loop (infinite loop threat)
+    if (micros() - looptimestart > 10000000*2){ //too long in loop (infinite loop threat)
       //Serial.print("break discharge, analog: " + analogRead(capacitorAnalogPin));
       break;
     }
@@ -138,67 +139,15 @@ void capacitorRead(){
   /* dicharge the capacitor  */
   digitalWrite(capacitorChargePin1, LOW);             // set charge pin to  LOW 
   digitalWrite(capacitorChargePin2, LOW);             // set charge pin to  LOW 
-} 
+}  
 
 void samplePorts() /*sample ports and send over serial according to rates*/ 
 
 {
   unsigned long time = millis();
-
-  if (time - imuTime > 1000/imuRate) /* sample imu pins */ {
-    unsigned long t = millis();
-    int imuX = analogRead(imuPinX);
-    int imuY = analogRead(imuPinY);
-    int imuZ = analogRead(imuPinZ); 
-
-    p("{\"imux\": %d, \"imuy\": %d, \"imuz\": %d, \"time\": %u}\n", imuX, imuY, imuZ, time);
-
-    imuTime = time;
-  }
-
-  if (time - capacitorTime > 1000/capacitorRate) /* sample capacitorPin */ {
-    capacitorRead();
-    capacitorTime = millis();
-  }
-
-  if (time - muxTime > 1000/muxRate) /* sample mux */ {
-
-    switch(muxChoice){
-    case 0: 
-      PORTD = tempMux; 
-      break;
-    case 1: 
-      PORTD = resistanceMux; 
-      break; 
-    case 2: 
-      PORTD = pressureMux; 
-      break;
-    }
-    
-    int muxVal = analogRead(muxPin);
-    muxTime = time;
-
-    switch(muxChoice){
-    case 0: 
-      printf("{\"temperature\": %d, \"time\": ", muxVal);
-      Serial.print(millis());
-      Serial.println("}");
-      break;
-    case 1: 
-      printf("{\"conductance\": %d, \"time\": ", muxVal);
-      Serial.print(millis());
-      Serial.println("}");  
-      break; 
-    case 2: 
-      printf("{\"pressure\": %d, \"time\": ", muxVal);
-      Serial.print(millis());
-      Serial.println("}");
-      break;
-    }
-    muxChoice = (muxChoice+1)%3; 
-  }
-
+  capacitorRead();
 }
+
 
 
 
