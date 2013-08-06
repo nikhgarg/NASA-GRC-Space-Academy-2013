@@ -77,6 +77,8 @@ def readSerial():
 	for sensor in sensors:
 		files[sensor] = open("data/" + sensor + ".txt", "a")
 
+	genericdata = open("data/generic.txt", "a")
+
 	ser = serial.Serial('/dev/ttyACM0', 115200)
 	while True:
 		x = ser.readline()
@@ -86,6 +88,8 @@ def readSerial():
 				if sensor in f:
 					files[sensor].write(str(time.time()) + " " + x + '\n')
 					files[sensor].flush()
+			genericdata.write(str(time.time()) + " " + x + '\n')
+			genericdata.flush()
 		except:
 			# corrupt json
 			pass
