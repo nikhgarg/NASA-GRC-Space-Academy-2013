@@ -81,7 +81,7 @@ void capacitorRead(){
   long startTime = micros();
   looptimestart = micros();
   int index = 0;
-  int cap1Value = 800;
+  int cap1Value = 0;
   int cap2Value = 0;
   digitalWrite(capacitorChargePin1, HIGH);
   digitalWrite(capacitorChargePin2, HIGH);

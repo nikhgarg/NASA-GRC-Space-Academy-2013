@@ -18,9 +18,9 @@ const int pressureMux = 2 << 5;
 const int capacitorChargePin1 = 3;
 const int capacitorChargePin2 = 4;
 
-const int imuRate = 5.; /* sampling rate in Hz */
-const float capacitorRate = .1; //dedicate to capacitor every  10 seconds
-const int muxRate = 3.0;
+const int imuRate = 10; /* sampling rate in Hz */
+const float capacitorRate = 1; //dedicate to capacitor every  10 seconds
+const int muxRate = 10;
 
 int muxChoice = 0;
 const int capacitorResistorValue = 1000;
@@ -72,7 +72,7 @@ void capacitorRead(){
   long looptimestart = micros();
   while(analogRead(capacitorAnalogPin1) > 0){         // wait until capacitor is completely discharged
 
-    if (micros() - looptimestart > 1000000*2){ //too long in loop (infinite loop threat)
+    if (micros() - looptimestart > 10000000*2){ //too long in loop (infinite loop threat)
       //Serial.print("break discharge, analog: " + analogRead(capacitorAnalogPin));
       break;
     }
@@ -80,7 +80,7 @@ void capacitorRead(){
   long startTime = micros();
   looptimestart = micros();
   int index = 0;
-  int cap1Value = 800;
+  int cap1Value = 0;
   int cap2Value = 0;
   digitalWrite(capacitorChargePin1, HIGH);
   digitalWrite(capacitorChargePin2, HIGH);
@@ -157,6 +157,7 @@ void samplePorts() /*sample ports and send over serial according to rates*/
   }
 
   if (time - capacitorTime > 1000/capacitorRate) /* sample capacitorPin */ {
+
     capacitorRead();
     capacitorTime = millis();
   }

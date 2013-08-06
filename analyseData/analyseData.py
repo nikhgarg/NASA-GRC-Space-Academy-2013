@@ -100,9 +100,33 @@ depth = [maxPressure - x for x in pressure]
 #pl.ylabel("Pressure")
 ##pl.savefig("Depth vs Time")
 #pl.show()
-#pl.scatter(time, (depth - np.mean(depth))/np.std(depth))
-#pl.plot(time2, (temperature - np.mean(temperature))/np.std(temperature))
-#pl.show()
+
+# Two subplots, unpack the axes array immediately
+f, (ax1, ax2) = pl.subplots(2, 1, sharex=True, sharey = False)
+
+t0 = temperature[0]
+
+temperature = [x/1024.*5/10050*1e6 - t0/1024.*5/10050*1e6 for x in temperature]
+
+time = [x/1000. for x in time]
+time2 = [x/1000. for x in time2]
+pl.xlim([0, max(time[-1], time2[-1])])
+depth = (depth - np.mean(depth))*90/np.std(depth)
+d0 = depth[0]
+depth = depth - d0
+dm = float(min(depth))
+depth = depth/abs(dm)*90
+
+ax2.set_ylim((min(depth), max(depth)))
+ax2.scatter(time, depth, color = 'red')
+ax2.set_title('Depth vs Time')
+ax1.set_title('Temperature vs Time')
+ax1.scatter(time2, temperature, color = 'blue')
+ax1.set_ylim((-15, 0))
+ax1.set_ylabel("Change in Temperature (K)")
+ax2.set_ylabel("Change in Depth (ft)")
+pl.xlabel("Time (s)")
+pl.show()
 
 
 print time
