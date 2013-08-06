@@ -19,7 +19,7 @@ const int capacitorChargePin1 = 3;
 const int capacitorChargePin2 = 4;
 
 const int imuRate = 10; /* sampling rate in Hz */
-const float capacitorRate = 1; //dedicate to capacitor every  10 seconds
+const float capacitorRate = .5; //dedicate to capacitor every  10 seconds
 const int muxRate = 10;
 
 int muxChoice = 0;
@@ -77,6 +77,7 @@ void capacitorRead(){
       break;
     }
   }
+
   long startTime = micros();
   looptimestart = micros();
   int index = 0;
@@ -102,6 +103,7 @@ void capacitorRead(){
       break;
     }
   }
+
   while ( (cap1Value < 800 || cap2Value < 800) && index <= length);
 
   delay(del);
@@ -117,14 +119,15 @@ void capacitorRead(){
   }
   delay(del);
 
-  Serial.print("], \"capacitor2\": [");
-  Serial.print(capacitor2Data[0]);
-  for (int i = 1; i< index;i++){
-    delay(del);
-    Serial.print(", ");
-    Serial.print(capacitor2Data[i]);       
-  }
-  delay(del);
+ // Serial.print("]}");
+//  Serial.print("], \"capacitor2\": [");
+//  Serial.print(capacitor2Data[0]);
+//  for (int i = 1; i< index;i++){
+//    delay(del);
+//    Serial.print(", ");
+//    Serial.print(capacitor2Data[i]);       
+//  }
+//  delay(del);
   Serial.print("],");
   Serial.print("\"capacitorIime\": [");
   Serial.print( capacitorTimeData[0]);
@@ -138,7 +141,7 @@ void capacitorRead(){
   /* dicharge the capacitor  */
   digitalWrite(capacitorChargePin1, LOW);             // set charge pin to  LOW 
   digitalWrite(capacitorChargePin2, LOW);             // set charge pin to  LOW 
-} 
+}  
 
 void samplePorts() /*sample ports and send over serial according to rates*/ 
 
@@ -181,17 +184,17 @@ void samplePorts() /*sample ports and send over serial according to rates*/
 
     switch(muxChoice){
     case 0: 
-      printf("{\"temperature\": %d, \"time\": ", muxVal);
+      p("{\"temperature\": %d, \"time\": ", muxVal);
       Serial.print(millis());
       Serial.println("}");
       break;
     case 1: 
-      printf("{\"conductance\": %d, \"time\": ", muxVal);
+      p("{\"conductance\": %d, \"time\": ", muxVal);
       Serial.print(millis());
       Serial.println("}");  
       break; 
     case 2: 
-      printf("{\"pressure\": %d, \"time\": ", muxVal);
+      p("{\"pressure\": %d, \"time\": ", muxVal);
       Serial.print(millis());
       Serial.println("}");
       break;
